@@ -1,4 +1,4 @@
-# bower package for angular-deferred-bootstrap
+# angular-deferred-bootstrap
 
 > Initialize your AngularJS app with constants loaded from the back-end.
 
