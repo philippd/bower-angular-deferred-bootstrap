@@ -1,9 +1,14 @@
-# angular-async-bootstrap
+# bower package for angular-deferred-bootstrap
 
-angular-async-bootstrap bower package (source: https://github.com/philippd/angular-async-bootstrap)
+> Initialize your AngularJS app with constants loaded from the back-end.
 
-### Installation
+This component provides a global resolve function for your app. It works similar to the resolve functions you may know from ngRoute or ui-router: You define what needs to be loaded from the back-end before your application can be started and the deferred bootstrapper takes care of loading the data and bootstrapping the application.
 
-````
-$ bower install angular-async-bootstrap
-````
+## Install
+
+#### [Bower](http://bower.io)
+
+```
+bower install --save angular-deferred-bootstrap
+```
+

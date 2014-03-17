@@ -1,6 +1,6 @@
 /**
- * angular-async-bootstrap - v0.0.1-alpha - 2014-03-12
- * https://github.com/philippd/angular-async-bootstrap
+ * angular-deferred-bootstrap - v0.0.1 - 2014-03-17
+ * https://github.com/philippd/angular-deferred-bootstrap
  * Copyright (c) 2014 Philipp Denzler
  * License: MIT
  */
@@ -15,8 +15,8 @@ var isObject = angular.isObject,
   injector = angular.injector(['ng']),
   $q = injector.get('$q'),
   $http = injector.get('$http'),
-  loadingClass = 'async-bootstrap-loading',
-  errorClass = 'async-bootstrap-error';
+  loadingClass = 'deferred-bootstrap-loading',
+  errorClass = 'deferred-bootstrap-error';
 
 function addLoadingClass() {
   bodyElement.addClass(loadingClass);
@@ -52,9 +52,10 @@ function doBootstrap (element, module) {
   });
 }
 
-function bootstrap (config) {
+function bootstrap (configParam) {
 
-  var element = config.element,
+  var config = configParam || {},
+    element = config.element,
     module = config.module,
     promises = [],
     constantNames = [];
@@ -80,7 +81,7 @@ function bootstrap (config) {
 
   function handleResults (results) {
     forEach(results, function (value, index) {
-      var result = value.data ? value.data : value;
+      var result = value && value.data ? value.data : value;
       angular.module(module).constant(constantNames[index], result);
     });
     doBootstrap(element, module);
@@ -95,7 +96,8 @@ function bootstrap (config) {
 }
 
 // publish external API
-window.asyncBootstrapper = {
+window.deferredBootstrapper = {
   bootstrap: bootstrap
 };
+
 })(window, document);

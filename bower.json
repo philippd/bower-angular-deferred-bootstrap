@@ -1,5 +1,5 @@
 {
-  "name": "angular-async-bootstrap",
-  "version": "0.0.1-alpha",
-  "main": "./angular-async-bootstrap.js"
+  "name": "angular-deferred-bootstrap",
+  "version": "0.0.1",
+  "main": "./angular-deferred-bootstrap.js"
 }
