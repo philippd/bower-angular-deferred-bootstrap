@@ -1,5 +1,5 @@
 /**
- * angular-deferred-bootstrap - v0.0.1 - 2014-03-17
+ * angular-deferred-bootstrap - v0.0.2 - 2014-04-15
  * https://github.com/philippd/angular-deferred-bootstrap
  * Copyright (c) 2014 Philipp Denzler
  * License: MIT
@@ -90,8 +90,7 @@ function bootstrap (configParam) {
   forEach(config.resolve, callResolveFn);
 
   $q.all(promises)
-    .then(handleResults, addErrorClass)
-    .finally(removeLoadingClass);
+    .then(handleResults, addErrorClass)['finally'](removeLoadingClass);
 
 }
 
