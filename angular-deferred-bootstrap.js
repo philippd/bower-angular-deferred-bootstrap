@@ -1,5 +1,5 @@
 /**
- * angular-deferred-bootstrap - v0.0.3 - 2014-04-15
+ * angular-deferred-bootstrap - v0.0.4 - 2014-04-16
  * https://github.com/philippd/angular-deferred-bootstrap
  * Copyright (c) 2014 Philipp Denzler
  * License: MIT
@@ -45,6 +45,9 @@ function checkConfig (config) {
   if (!isObject(config.resolve)) {
     throw new Error('\'config.resolve\' must be an object.');
   }
+  if (angular.isDefined(config.onError) && !isFunction(config.onError)) {
+    throw new Error('\'config.onError\' must be a function.');
+  }
 }
 
 function doBootstrap (element, module) {
@@ -89,9 +92,16 @@ function bootstrap (configParam) {
     doBootstrap(element, module);
   }
 
+  function handleError(error) {
+    addErrorClass();
+    if (isFunction(config.onError)) {
+      config.onError(error);
+    }
+  }
+
   forEach(config.resolve, callResolveFn);
 
-  $q.all(promises).then(handleResults, addErrorClass);
+  $q.all(promises).then(handleResults, handleError);
 
 }
 
