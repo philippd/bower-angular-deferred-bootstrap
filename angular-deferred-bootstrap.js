@@ -1,5 +1,5 @@
 /**
- * angular-deferred-bootstrap - v0.0.5 - 2014-04-22
+ * angular-deferred-bootstrap - v0.1.0 - 2014-06-10
  * https://github.com/philippd/angular-deferred-bootstrap
  * Copyright (c) 2014 Philipp Denzler
  * License: MIT
@@ -9,24 +9,24 @@
 
 var isObject = angular.isObject,
   isFunction = angular.isFunction,
+  isArray = angular.isArray,
   isString = angular.isString,
   forEach = angular.forEach,
+  ngInjector = angular.injector(['ng']),
+  $q = ngInjector.get('$q'),
   bodyElement,
-  injector = angular.injector(['ng']),
-  $q = injector.get('$q'),
-  $http = injector.get('$http'),
   loadingClass = 'deferred-bootstrap-loading',
   errorClass = 'deferred-bootstrap-error';
 
-function addLoadingClass() {
+function addLoadingClass () {
   bodyElement.addClass(loadingClass);
 }
 
-function removeLoadingClass() {
+function removeLoadingClass () {
   bodyElement.removeClass(loadingClass);
 }
 
-function addErrorClass() {
+function addErrorClass () {
   removeLoadingClass();
   bodyElement.addClass(errorClass);
 }
@@ -50,6 +50,14 @@ function checkConfig (config) {
   }
 }
 
+function createInjector (injectorModules) {
+  if (isArray(injectorModules)) {
+    return (injectorModules.length === 1 && injectorModules[0] === 'ng') ? ngInjector : angular.injector(injectorModules);
+  } else {
+    return (injectorModules === 'ng') ? ngInjector : angular.injector([injectorModules]);
+  }
+}
+
 function doBootstrap (element, module) {
   var deferred = $q.defer();
 
@@ -64,10 +72,11 @@ function doBootstrap (element, module) {
 }
 
 function bootstrap (configParam) {
-
   var config = configParam || {},
     element = config.element,
     module = config.module,
+    injectorModules = config.injectorModules || ['ng'],
+    injector,
     promises = [],
     constantNames = [];
 
@@ -80,11 +89,14 @@ function bootstrap (configParam) {
     var result;
 
     constantNames.push(constantName);
-    if (!isFunction(resolveFunction)) {
-      throw new Error('Resolve for \'' + constantName + '\' is not a function.');
+
+    if (!isFunction(resolveFunction) && !isArray(resolveFunction)) {
+      throw new Error('Resolve for \'' + constantName + '\' is not a valid dependency injection format.');
     }
 
-    result = resolveFunction($http, $q, injector);
+    injector = createInjector(injectorModules);
+    result = injector.instantiate(resolveFunction);
+
     if (isPromise(result)) {
       promises.push(result);
     } else {
@@ -101,7 +113,7 @@ function bootstrap (configParam) {
     return doBootstrap(element, module);
   }
 
-  function handleError(error) {
+  function handleError (error) {
     addErrorClass();
     if (isFunction(config.onError)) {
       config.onError(error);
@@ -111,12 +123,9 @@ function bootstrap (configParam) {
   forEach(config.resolve, callResolveFn);
 
   return $q.all(promises).then(handleResults, handleError);
-
 }
 
-// publish external API
 window.deferredBootstrapper = {
   bootstrap: bootstrap
 };
-
 })(window, document);
