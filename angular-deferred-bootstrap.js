@@ -1,5 +1,5 @@
 /**
- * angular-deferred-bootstrap - v0.1.1 - 2014-07-04
+ * angular-deferred-bootstrap - v0.1.2 - 2014-08-04
  * https://github.com/philippd/angular-deferred-bootstrap
  * Copyright (c) 2014 Philipp Denzler
  * License: MIT
@@ -42,9 +42,30 @@ function checkConfig (config) {
   if (!isString(config.module)) {
     throw new Error('\'config.module\' must be a string.');
   }
-  if (!isObject(config.resolve)) {
-    throw new Error('\'config.resolve\' must be an object.');
+  if (config.resolve && config.moduleResolves) {
+    throw new Error('Bootstrap configuration can contain either \'resolve\' or \'moduleResolves\' but not both');
   }
+  if (config.resolve) {
+    if (!isObject(config.resolve)) {
+      throw new Error('\'config.resolve\' must be an object.');
+    }
+  }
+  if (config.moduleResolves) {
+    if (!isArray(config.moduleResolves)) {
+      throw new Error('\'config.moduleResolves\' must be an array.');
+    }
+  }
+
+  forEach(config.moduleResolves, function (moduleResolve) {
+    if (!moduleResolve.module) {
+      throw new Error('A \'moduleResolve\' configuration item must contain a \'module\' name.');
+    }
+
+    if (!isObject(moduleResolve.resolve)) {
+      throw new Error('\'moduleResolve.resolve\' must be an object.');
+    }
+  });
+
   if (angular.isDefined(config.onError) && !isFunction(config.onError)) {
     throw new Error('\'config.onError\' must be a function.');
   }
@@ -81,7 +102,7 @@ function bootstrap (configParam) {
     injectorModules = config.injectorModules || [],
     injector,
     promises = [],
-    constantNames = [];
+    constants = [];
 
   bodyElement = angular.element(document.body);
 
@@ -89,10 +110,13 @@ function bootstrap (configParam) {
   checkConfig(config);
   injector = createInjector(injectorModules);
 
-  function callResolveFn (resolveFunction, constantName) {
+  function callResolveFn (resolveFunction, constantName, moduleName) {
     var result;
 
-    constantNames.push(constantName);
+    constants.push({
+      name: constantName,
+      moduleName: moduleName || module
+    });
 
     if (!isFunction(resolveFunction) && !isArray(resolveFunction)) {
       throw new Error('Resolve for \'' + constantName + '\' is not a valid dependency injection format.');
@@ -109,8 +133,11 @@ function bootstrap (configParam) {
 
   function handleResults (results) {
     forEach(results, function (value, index) {
-      var result = value && value.data ? value.data : value;
-      angular.module(module).constant(constantNames[index], result);
+      var result = value && value.data ? value.data : value,
+        moduleName = constants[index].moduleName,
+        constantName = constants[index].name;
+
+      angular.module(moduleName).constant(constantName, result);
     });
 
     return doBootstrap(element, module);
@@ -124,6 +151,16 @@ function bootstrap (configParam) {
   }
 
   forEach(config.resolve, callResolveFn);
+
+  if (config.moduleResolves) {
+    forEach(config.moduleResolves, function (moduleResolve, index) {
+      forEach(moduleResolve.resolve, function (resolveFunction, constantName) {
+        callResolveFn(resolveFunction, constantName, config.moduleResolves[index].module);
+      });
+    });
+  } else {
+    forEach(config.resolve, callResolveFn);
+  }
 
   return $q.all(promises).then(handleResults, handleError);
 }
