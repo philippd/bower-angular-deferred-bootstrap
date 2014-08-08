@@ -1,5 +1,5 @@
 /**
- * angular-deferred-bootstrap - v0.1.2 - 2014-08-04
+ * angular-deferred-bootstrap - v0.1.3 - 2014-08-08
  * https://github.com/philippd/angular-deferred-bootstrap
  * Copyright (c) 2014 Philipp Denzler
  * License: MIT
@@ -149,8 +149,6 @@ function bootstrap (configParam) {
       config.onError(error);
     }
   }
-
-  forEach(config.resolve, callResolveFn);
 
   if (config.moduleResolves) {
     forEach(config.moduleResolves, function (moduleResolve, index) {
