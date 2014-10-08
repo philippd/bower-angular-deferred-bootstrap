@@ -1,5 +1,5 @@
 /**
- * angular-deferred-bootstrap - v0.1.4 - 2014-10-03
+ * angular-deferred-bootstrap - v0.1.5 - 2014-10-08
  * https://github.com/philippd/angular-deferred-bootstrap
  * Copyright (c) 2014 Philipp Denzler
  * License: MIT
@@ -49,6 +49,11 @@ function checkConfig (config) {
       throw new Error('\'config.resolve\' must be an object.');
     }
   }
+  if (config.bootstrapConfig) {
+    if (!isObject(config.bootstrapConfig)) {
+      throw new Error('\'config.bootstrapConfig\' must be an object.');
+    }
+  }
   if (config.moduleResolves) {
     if (!isArray(config.moduleResolves)) {
       throw new Error('\'config.moduleResolves\' must be an array.');
@@ -87,11 +92,11 @@ function createInjector (injectorModules, element) {
   return angular.injector(modules, element);
 }
 
-function doBootstrap (element, module) {
+function doBootstrap (element, module, bootstrapConfig) {
   var deferred = $q.defer();
 
   angular.element(document).ready(function () {
-    angular.bootstrap(element, [module]);
+    angular.bootstrap(element, [module], bootstrapConfig);
     removeLoadingClass();
 
     deferred.resolve(true);
@@ -107,7 +112,8 @@ function bootstrap (configParam) {
     injectorModules = config.injectorModules || [],
     injector,
     promises = [],
-    constants = [];
+    constants = [],
+    bootstrapConfig = config.bootstrapConfig;
 
   bodyElement = angular.element(document.body);
 
@@ -146,7 +152,7 @@ function bootstrap (configParam) {
       angular.module(moduleName).constant(constantName, result);
     });
 
-    return doBootstrap(element, module);
+    return doBootstrap(element, module, bootstrapConfig);
   }
 
   function handleError (error) {
@@ -163,7 +169,9 @@ function bootstrap (configParam) {
       });
     });
   } else {
-    forEach(config.resolve, callResolveFn);
+    forEach(config.resolve, function (resolveFunction, constantName) {
+      callResolveFn(resolveFunction, constantName);
+    });
   }
 
   return $q.all(promises).then(handleResults, handleError);
