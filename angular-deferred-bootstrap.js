@@ -1,5 +1,5 @@
 /**
- * angular-deferred-bootstrap - v0.1.2 - 2014-08-04
+ * angular-deferred-bootstrap - v0.1.5 - 2014-10-08
  * https://github.com/philippd/angular-deferred-bootstrap
  * Copyright (c) 2014 Philipp Denzler
  * License: MIT
@@ -12,11 +12,10 @@ var isObject = angular.isObject,
   isArray = angular.isArray,
   isString = angular.isString,
   forEach = angular.forEach,
-  ngInjector = angular.injector(['ng']),
-  $q = ngInjector.get('$q'),
-  bodyElement,
   loadingClass = 'deferred-bootstrap-loading',
-  errorClass = 'deferred-bootstrap-error';
+  errorClass = 'deferred-bootstrap-error',
+  bodyElement,
+  $q;
 
 function addLoadingClass () {
   bodyElement.addClass(loadingClass);
@@ -50,6 +49,11 @@ function checkConfig (config) {
       throw new Error('\'config.resolve\' must be an object.');
     }
   }
+  if (config.bootstrapConfig) {
+    if (!isObject(config.bootstrapConfig)) {
+      throw new Error('\'config.bootstrapConfig\' must be an object.');
+    }
+  }
   if (config.moduleResolves) {
     if (!isArray(config.moduleResolves)) {
       throw new Error('\'config.moduleResolves\' must be an array.');
@@ -70,23 +74,29 @@ function checkConfig (config) {
     throw new Error('\'config.onError\' must be a function.');
   }
 }
-
-function createInjector (injectorModules) {
-  if (isString(injectorModules)) {
-    return angular.injector(['ng', injectorModules]);
-  } else if (isArray(injectorModules) && injectorModules.length === 1 && injectorModules[0] === 'ng') {
-    return ngInjector;
-  } else {
-    injectorModules.unshift('ng');
-    return angular.injector(injectorModules);
-  }
+function provideRootElement (modules, element) {
+  element = angular.element(element);
+  modules.unshift(['$provide', function($provide) {
+    $provide.value('$rootElement', element);
+  }]);
 }
 
-function doBootstrap (element, module) {
+function createInjector (injectorModules, element) {
+  var modules = ['ng'];
+  if (isString(injectorModules)) {
+    modules.push(injectorModules);
+  } else if (isArray(injectorModules)) {
+    modules = modules.concat(injectorModules);
+  }
+  provideRootElement(modules, element);
+  return angular.injector(modules, element);
+}
+
+function doBootstrap (element, module, bootstrapConfig) {
   var deferred = $q.defer();
 
   angular.element(document).ready(function () {
-    angular.bootstrap(element, [module]);
+    angular.bootstrap(element, [module], bootstrapConfig);
     removeLoadingClass();
 
     deferred.resolve(true);
@@ -102,13 +112,15 @@ function bootstrap (configParam) {
     injectorModules = config.injectorModules || [],
     injector,
     promises = [],
-    constants = [];
+    constants = [],
+    bootstrapConfig = config.bootstrapConfig;
 
   bodyElement = angular.element(document.body);
 
   addLoadingClass();
   checkConfig(config);
-  injector = createInjector(injectorModules);
+  injector = createInjector(injectorModules, element);
+  $q = injector.get('$q');
 
   function callResolveFn (resolveFunction, constantName, moduleName) {
     var result;
@@ -140,7 +152,7 @@ function bootstrap (configParam) {
       angular.module(moduleName).constant(constantName, result);
     });
 
-    return doBootstrap(element, module);
+    return doBootstrap(element, module, bootstrapConfig);
   }
 
   function handleError (error) {
@@ -150,8 +162,6 @@ function bootstrap (configParam) {
     }
   }
 
-  forEach(config.resolve, callResolveFn);
-
   if (config.moduleResolves) {
     forEach(config.moduleResolves, function (moduleResolve, index) {
       forEach(moduleResolve.resolve, function (resolveFunction, constantName) {
@@ -159,7 +169,9 @@ function bootstrap (configParam) {
       });
     });
   } else {
-    forEach(config.resolve, callResolveFn);
+    forEach(config.resolve, function (resolveFunction, constantName) {
+      callResolveFn(resolveFunction, constantName);
+    });
   }
 
   return $q.all(promises).then(handleResults, handleError);
