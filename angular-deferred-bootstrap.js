@@ -1,7 +1,7 @@
 /**
- * angular-deferred-bootstrap - v0.1.5 - 2014-10-08
+ * angular-deferred-bootstrap - v0.1.6 - 2015-04-09
  * https://github.com/philippd/angular-deferred-bootstrap
- * Copyright (c) 2014 Philipp Denzler
+ * Copyright (c) 2015 Philipp Denzler
  * License: MIT
  */
 (function (window, document) {
@@ -21,12 +21,13 @@ function addLoadingClass () {
   bodyElement.addClass(loadingClass);
 }
 
-function removeLoadingClass () {
+function removeBodyClasses () {
   bodyElement.removeClass(loadingClass);
+  bodyElement.removeClass(errorClass);
 }
 
 function addErrorClass () {
-  removeLoadingClass();
+  removeBodyClasses();
   bodyElement.addClass(errorClass);
 }
 
@@ -97,7 +98,7 @@ function doBootstrap (element, module, bootstrapConfig) {
 
   angular.element(document).ready(function () {
     angular.bootstrap(element, [module], bootstrapConfig);
-    removeLoadingClass();
+    removeBodyClasses();
 
     deferred.resolve(true);
   });
@@ -180,4 +181,5 @@ function bootstrap (configParam) {
 window.deferredBootstrapper = {
   bootstrap: bootstrap
 };
+
 })(window, document);
