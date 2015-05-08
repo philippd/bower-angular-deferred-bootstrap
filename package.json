@@ -19,5 +19,20 @@
   "bugs": {
     "url": "https://github.com/philippd/angular-deferred-bootstrap/issues"
   },
-  "homepage": "https://github.com/philippd/angular-deferred-bootstrap"
+  "homepage": "https://github.com/philippd/angular-deferred-bootstrap",
+  "jspm": {
+    "format": "global",
+    "registry": "github",
+    "dependencies": {
+      "angular": "github:angular/bower-angular@>=1.2.1"
+    },
+    "shim": {
+      "angular-deferred-bootstrap": {
+        "deps": [
+          "angular"
+        ],
+        "exports": "deferredBootstrapper"
+      }
+    }
+  }
 }
