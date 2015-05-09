@@ -24,7 +24,7 @@
     "format": "global",
     "registry": "github",
     "dependencies": {
-      "angular": "github:angular/bower-angular@>=1.2.1"
+      "angular": "github:angular/bower-angular@^1.2.1"
     },
     "shim": {
       "angular-deferred-bootstrap": {
