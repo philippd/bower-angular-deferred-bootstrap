@@ -21,5 +21,5 @@ npm install angular-deferred-bootstrap
 #### [jspm](http://jspm.io)
 
 ```
-jspm install github:philippd/bower-angular-deferred-bootstrap
+jspm install angular-deferred-bootstrap
 ```
