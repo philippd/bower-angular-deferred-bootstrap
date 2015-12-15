@@ -1,5 +1,5 @@
 /**
- * angular-deferred-bootstrap - v0.1.6 - 2015-04-09
+ * angular-deferred-bootstrap - v0.1.8 - 2015-12-15
  * https://github.com/philippd/angular-deferred-bootstrap
  * Copyright (c) 2015 Philipp Denzler
  * License: MIT
@@ -178,8 +178,16 @@ function bootstrap (configParam) {
   return $q.all(promises).then(handleResults, handleError);
 }
 
-window.deferredBootstrapper = {
+var deferredBootstrapper = {
   bootstrap: bootstrap
 };
+
+if(typeof define === 'function' && define.amd) {
+  define(['deferredBootstrapper'], deferredBootstrapper);
+} else if(typeof module === 'object' && module.exports) {
+  module.exports = deferredBootstrapper;
+} else {
+  window.deferredBootstrapper = deferredBootstrapper;
+}
 
 })(window, document);
